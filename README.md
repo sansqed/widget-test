@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Embeddable widget prototype for Fitin
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). 
 
-## Getting Started
+## What works
+- Next JS executes the `next.config.js` to bundle the app. Thus, widgets should be placed in this file for it to be bundled.
+- The widget compiler called in `next.config.js` uses the `widgets` folder in the root directory. Each widget are stored in their own folder.
+- Widgets are bundled using Webpack and should be placed under the `webpack` property in `module.exports`.
+- I found that placing the widgets under the `plugin` property of `webpack` works best while building widgets along with the main app. See `widgetCompiler.js`.
+- Widgets are built using `customElements` which uses a custom tag. When calling the widgets on the third-party site, you can use
+```JS
+// place inside the return of the component
+<Script strategy="beforeInteractive" async src="http://localhost:3001/_next/static/widgets/my-widget/index.js"/>
+<div id='my-widget'></div>
+<my-widget/>
 
-First, run the development server:
+// or
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun run dev
+useEffect(() => {
+    const importScript = document.createElement('script')
+    importScript.src="http://localhost:3001/_next/static/widgets/my-widget/index.js",
+    importScript.async=true
+    document.body.appendChild(importScript)
+    const widget = document.createElement('my-widget')
+    document.body.appendChild(widget)
+}, []);
+
+// `my-widget` is the tag name in `tagname.js` of each widget.
 ```
+- I have placed 3 test widgets, `hello`, `my-widget`, `non-customElements`
+	- `hello` uses the code to display the components [here](https://github.com/LeMisterV/Next-widget)
+	- `my-widget` uses [this code](https://github.com/seriousben/embeddable-react-widget/blob/master/src/outputs/embeddable-widget.js) and uses `customElements` to introduce the component to HTML.
+	- `non-customElements` doesn't use `customElements`
+## What doesn't work
+- When importing `hello` in the third-party website, the error `Uncaught TypeError: __webpack_require__.ts is not a function` is thrown. I still don't know how to resolve this. Perhaps this is due to the `ensureDependencies` in `hello/index.js`.
+- When using `my-widget`, it doesn't run, but there's also no error.
+- `non-customElements` produces an error when called. You can try different ways of calling it.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Further references
+- https://nextjs.org/docs/pages/api-reference/next-config-js/webpack
+- https://github.com/seriousben/embeddable-react-widget
+- https://github.com/LeMisterV/Next-widget

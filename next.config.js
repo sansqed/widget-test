@@ -1,4 +1,3 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {}
+const { addWidgetCompilation } = require("./src/config/widgetCompiler");
 
-module.exports = nextConfig
+module.exports = addWidgetCompilation({})
